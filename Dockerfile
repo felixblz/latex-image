@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:12 --platform=linux/arm64
 
 WORKDIR /tex
 
@@ -11,6 +11,11 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://miktex.org/download/key | gpg --dearmor -o /usr/share/keyrings/miktex.gpg
 
 RUN echo "deb [signed-by=/usr/share/keyrings/miktex.gpg] https://miktex.org/download/debian bookworm universe" | tee /etc/apt/sources.list.d/miktex.list
+
+ADD https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.deb /tmp/jdk-21_linux-x64_bin.deb
+
+RUN dpkg -i /tmp/jdk-21_linux-x64_bin.deb \
+    && rm /tmp/jdk-21_linux-x64_bin.deb
 
 RUN apt-get update && apt-get install -y \
     miktex \
