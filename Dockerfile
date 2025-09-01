@@ -1,4 +1,4 @@
-FROM debian:12 --platform=linux/arm64
+FROM --platform=linux/arm64 debian:12
 
 WORKDIR /tex
 
