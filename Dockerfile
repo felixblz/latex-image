@@ -1,24 +1,29 @@
-FROM alpine:3.22
+FROM debian:12
 
 WORKDIR /tex
 
-RUN apk add --no-cache \
-    perl \
-    tar \
+RUN apt-get update && apt-get install -y \
+    gnupg \
     curl \
-    xz \
-    perl-net-ssleay \
-    perl-io-socket-ssl \
-    unzip
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-ADD https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz install-tl-unx.tar.gz
+RUN curl -fsSL https://miktex.org/download/key | gpg --dearmor -o /usr/share/keyrings/miktex.gpg
 
-RUN mkdir install-tl \
-    && tar -xzvf install-tl-unx.tar.gz -C install-tl \
-    && rm install-tl-unx.tar.gz
+RUN echo "deb [signed-by=/usr/share/keyrings/miktex.gpg] https://miktex.org/download/debian bookworm universe" | tee /etc/apt/sources.list.d/miktex.list
 
-RUN cd install-tl/* \
-    && perl ./install-tl --no-interaction
+RUN apt-get update && apt-get install -y \
+    miktex \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN miktexsetup \
+    --shared=yes \
+    finish
+
+RUN initexmf \
+    --admin \
+    --set-config-value \
+    [MPM]AutoInstall=1
 
 WORKDIR /kotlin
 
@@ -27,7 +32,6 @@ ADD https://github.com/JetBrains/kotlin/releases/download/v2.1.21/kotlin-compile
 RUN unzip kotlin-compiler.zip  \
     && rm kotlin-compiler.zip
 
-ENV PATH="/usr/local/texlive/2025/bin/x86_64-linux:$PATH"
 ENV PATH="/kotlin/kotlinc/bin:$PATH"
 
 WORKDIR /app
